@@ -13,7 +13,7 @@ if "user_message_count" not in st.session_state:
 if "feedback_shown" not in st.session_state:
     st.session_state.feedback_shown =  False
 if "messages" not in st.session_state: 
-    st.session_state.feedback_shown = []
+    st.session_state.messages = []
 if "chat_complete" not in st.session_state:
     st.session_state.chat_complete = False
 
@@ -58,7 +58,7 @@ if not st.session_state.setup_complete:
     # We organize the options into two columns
     col1, col2 = st.columns(2)
     with col1:
-        st.session_state["level"] = st.readio(
+        st.session_state["level"] = st.radio(
         "Choose level", 
         key = "visibility", # key parameter helps maintain widget state across interactions
         options = ["Junior", "Mid-level", "Senior"],
@@ -87,7 +87,7 @@ if st.session_state.setup_complete and not st.session_state.feedback_shown and n
         """
         Start by introducing yourself. 
         """,
-        icon = ":clap:"
+        icon = "👋"
     )
 
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -109,7 +109,7 @@ if st.session_state.setup_complete and not st.session_state.feedback_shown and n
 
     # This loop goes over each state message. If the role of the message is not system, we create a block that can take one of two roles, assistant or user.
     # Using markdown we put the content of the message. The loop goes through all messages and displays them.
-    for message in st.sessions_state.messages:
+    for message in st.session_state.messages:
         if message["role"] != "system":
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
@@ -160,11 +160,11 @@ if st.session_state.feedback_shown:
     st.subheader("Feedback")
 
     #Statement to create a chat history var which joins all state messages into a single string
-    conversation_history = "\n".join([f"{msg["role"]}: {msg["content"]}" for msg in st.session_state.nessages])
+    conversation_history = "\n".join([f"{msg["role"]}: {msg["content"]}" for msg in st.session_state.messages])
 
     # New model for evaluation
     feedback_client = OpenAI(api_key = st.secrets["OPENAI_API_KEY"])
-    feedback_completion = feedback_client.chat.completetions.create(
+    feedback_completion = feedback_client.chat.completions.create(
         model = "gpt-4o",
         messages = [
             {"role": "system", "content": """You are a helpful tool that provides feedback on an interviewee performance.
